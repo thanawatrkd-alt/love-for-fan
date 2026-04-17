@@ -478,7 +478,7 @@
                 const groqApiKey = localStorage.getItem('groqApiKey');
                 let reply = "";
 
-                if (groqApiKey && groqApiKey.startsWith('gsk-')) {
+                if (groqApiKey && (groqApiKey.startsWith('gsk-') || groqApiKey.startsWith('gsk_'))) {
                     // Use User's Private Groq Key
                     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                         method: 'POST',
@@ -494,11 +494,17 @@
                             ]
                         }),
                     });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error?.message || `Groq Error: ${response.status}`);
+                    }
+                    
                     const data = await response.json();
                     if(data.choices && data.choices[0] && data.choices[0].message) {
                         reply = data.choices[0].message.content;
                     } else {
-                        throw new Error(data.error?.message || 'Invalid response from Groq');
+                        throw new Error('Invalid response from Groq');
                     }
                 } else if (userApiKey && userApiKey.startsWith('sk-')) {
                     // Use User's Private OpenAI Key
@@ -555,7 +561,7 @@
                 console.error('AI Error:', error);
                 const errorMsg = document.createElement('div');
                 errorMsg.className = 'chat-message ai';
-                errorMsg.textContent = 'ขออภัย ลาฟมีปัญหาในการตอบ 😢';
+                errorMsg.textContent = `ขออภัย เกิดข้อผิดพลาด: ${error.message} 😢`;
                 chatBox.appendChild(errorMsg);
                 chatBox.scrollTop = chatBox.scrollHeight;
             }
