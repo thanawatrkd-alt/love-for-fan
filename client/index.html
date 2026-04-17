@@ -1,26 +1,334 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Love for Fan - From Laugh</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.6.0/confetti.browser.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;600;800&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { 
+            font-family: 'Anuphan', sans-serif; 
+            background: #fff5f7; 
+            color: #5d4a50;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .font-cute { font-family: 'Gaegu', cursive; }
+        
+        /* Lock Screen Keypad */
+        .key-btn {
+            width: 65px; height: 65px;
+            display: flex; align-items: center; justify-content: center;
+            background: #ffffff; border-radius: 50%; font-size: 1.2rem;
+            box-shadow: 0 4px 10px rgba(244, 114, 182, 0.1);
+            transition: all 0.2s; border: 1px solid #ffe4e6;
+            cursor: pointer; color: #ec4899;
+        }
+        .key-btn:active { background: #f472b6; color: white; transform: scale(0.9); }
+        .dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #f472b6; transition: 0.3s; }
+        .dot-active { background: #f472b6; transform: scale(1.3); }
 
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>Love for Fan - From Laugh</title>    
-    <!-- THIS IS THE START OF A COMMENT BLOCK, BLOCK TO BE DELETED: Google Fonts here, example:
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    THIS IS THE END OF A COMMENT BLOCK, BLOCK TO BE DELETED -->
-  </head>
+        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 2px solid #fff1f2; border-radius: 35px; }
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-    <script
-      defer
-      src="%VITE_ANALYTICS_ENDPOINT%/umami"
-      data-website-id="%VITE_ANALYTICS_WEBSITE_ID%"></script>
-  </body>
+        /* Photo Styles */
+        .photo-item { 
+            background: white; padding: 10px 10px 30px 10px; 
+            box-shadow: 0 8px 15px rgba(244, 114, 182, 0.08); 
+            border-radius: 4px; transition: 0.3s;
+            transform: rotate(var(--rot));
+        }
+        .photo-item img { width: 100%; height: 160px; object-fit: cover; border-radius: 2px; }
 
+        /* Admin Modal */
+        #admin-modal {
+            display: none; position: fixed; inset: 0; background: rgba(80, 20, 40, 0.5);
+            z-index: 5000; align-items: center; justify-content: center; padding: 20px;
+        }
+        .admin-box { background: white; width: 100%; max-width: 380px; border-radius: 25px; padding: 25px; }
+        .file-input { display: block; width: 100%; padding: 10px; background: #fff5f7; border: 1px dashed #f9a8d4; border-radius: 12px; margin-bottom: 12px; font-size: 12px; color: #db2777; }
+    
+        /* Settings Icon (Lock screen only) */
+        .admin-trigger-minimal {
+            position: absolute; top: 20px; left: 20px; 
+            color: #f9a8d4; font-size: 1.3rem; cursor: pointer;
+            background: transparent !important; border: none !important;
+            opacity: 0.5; transition: 0.3s; padding: 5px;
+        }
+        .admin-trigger-minimal:hover { opacity: 1; color: #ec4899; transform: rotate(45deg); }
+
+        /* Loading Overlay */
+        #loading-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(255, 255, 255, 0.8);
+            z-index: 6000; align-items: center; justify-content: center; flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+    <!-- Lock Screen -->
+    <div id="lock-screen" class="fixed inset-0 z-[2000] bg-[#fff5f7] flex flex-col items-center justify-center p-6">
+        <button class="admin-trigger-minimal" onclick="openAdmin()" aria-label="Settings">
+            <i class="fas fa-cog"></i>
+        </button>
+
+        <div class="text-center mb-10">
+            <h2 class="font-cute text-4xl text-pink-600 font-bold tracking-wide">Love for Fan</h2>
+        </div>
+
+        <div class="flex gap-4 mb-12">
+            <div class="dot" id="d0"></div><div class="dot" id="d1"></div><div class="dot" id="d2"></div>
+            <div class="dot" id="d3"></div><div class="dot" id="d4"></div><div class="dot" id="d5"></div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-5">
+            <button class="key-btn" onclick="addNum('1')">1</button>
+            <button class="key-btn" onclick="addNum('2')">2</button>
+            <button class="key-btn" onclick="addNum('3')">3</button>
+            <button class="key-btn" onclick="addNum('4')">4</button>
+            <button class="key-btn" onclick="addNum('5')">5</button>
+            <button class="key-btn" onclick="addNum('6')">6</button>
+            <button class="key-btn" onclick="addNum('7')">7</button>
+            <button class="key-btn" onclick="addNum('8')">8</button>
+            <button class="key-btn" onclick="addNum('9')">9</button>
+            <div></div>
+            <button class="key-btn" onclick="addNum('0')">0</button>
+            <button class="key-btn text-pink-300" onclick="delNum()"><i class="fas fa-backspace"></i></button>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="admin-modal">
+        <div class="admin-box">
+            <h3 class="font-cute text-2xl text-pink-600 mb-5 text-center">จัดการความทรงจำ ⚙️</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">แกลเลอรี่ภาพ 📸</label>
+                    <input type="file" id="up-photos" accept="image/*" multiple class="file-input">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">เพลงรัก (.mp3)</label>
+                    <input type="file" id="up-music" accept="audio/*" class="file-input">
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button onclick="saveAdmin()" class="flex-1 py-3 bg-pink-500 text-white rounded-xl font-bold shadow-lg shadow-pink-100">บันทึก</button>
+                    <button onclick="closeAdmin()" class="px-5 py-3 bg-gray-100 text-gray-400 rounded-xl font-bold">ปิด</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main id="main-content" class="hidden opacity-0">
+        <header class="pt-16 pb-10 text-center px-4">
+            <h1 class="font-cute text-5xl text-pink-500 mb-6">My Sweetheart.</h1>
+            <div class="flex justify-center gap-2 flex-wrap">
+                <div class="bg-white p-3 rounded-2xl shadow-sm min-w-[65px] border border-pink-50">
+                    <div id="t-days" class="text-xl font-bold text-pink-600">0</div>
+                    <div class="text-[7px] text-gray-400 font-bold uppercase tracking-widest">Days</div>
+                </div>
+                <div class="bg-white p-3 rounded-2xl shadow-sm min-w-[65px] border border-pink-50">
+                    <div id="t-hours" class="text-xl font-bold text-pink-600">0</div>
+                    <div class="text-[7px] text-gray-400 font-bold uppercase tracking-widest">Hours</div>
+                </div>
+                <div class="bg-white p-3 rounded-2xl shadow-sm min-w-[65px] border border-pink-50">
+                    <div id="t-minutes" class="text-xl font-bold text-pink-600">0</div>
+                    <div class="text-[7px] text-gray-400 font-bold uppercase tracking-widest">Mins</div>
+                </div>
+                <div class="bg-white p-3 rounded-2xl shadow-sm min-w-[65px] border border-pink-50">
+                    <div id="t-seconds" class="text-xl font-bold text-pink-600">0</div>
+                    <div class="text-[7px] text-gray-400 font-bold uppercase tracking-widest">Secs</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Message Section -->
+        <section class="px-6 mb-12">
+            <div class="max-w-md mx-auto glass-card p-8 shadow-xl relative">
+                <div class="text-pink-900 italic leading-relaxed text-center space-y-4">
+                    <p class="font-bold text-xl text-pink-600">"ลาฟรักแฟนมากนะ รักมากจริงๆ"</p>
+                    <p class="text-sm">
+                        อยากให้แฟนรู้ว่าที่ผ่านมาทุกอย่างลาฟตั้งใจรักแฟนเต็มที่เลย ขอบคุณนะที่อยู่กับลาฟมาจนถึงวันนี้ ขอบคุณที่ให้โอกาสลาฟได้รักและดูแลแฟน ขอบคุณที่ทนกับนิสัยงอแง ขี้น้อยใจของลาฟได้มาตลอด
+                    </p>
+                    <p class="text-sm">
+                        ลาฟรู้สึกโชคดีมากๆ ตั้งแต่วันที่แฟนเข้ามาในชีวิต ทุกอย่างมันดีขึ้นจริงๆ แฟนเป็นกำลังใจให้ลาฟในทุกเรื่องเลย ถึงลาฟอาจจะไม่ได้เป็นคนหวานเหมือนคู่อื่นๆ แต่ลาฟอยากให้แฟนรู้ว่าความรู้สึกของลาฟมันมากจริงๆ
+                    </p>
+                    <p class="text-sm">
+                        ลาฟนึกภาพชีวิตที่ไม่มีแฟนไม่ออกเลยนะ อย่าพึ่งไปไหนนะ อยู่กับลาฟไปนานๆ อยู่ด้วยกันในทุกเทศกาล ทุกช่วงเวลาเลยได้ไหม ถ้าเป็นไปได้ก็อยากให้เราอยู่ด้วยกันไปตลอดเลย
+                    </p>
+                    <p class="text-sm">
+                        ขอบคุณที่คอยบ่น คอยเตือน คอยดุ คอยสอนให้ลาฟคิดได้ในหลายๆ เรื่อง ขอบคุณสำหรับคำปลอบใจและคำแนะนำทุกครั้งที่ลาฟมีปัญหา
+                    </p>
+                    <p class="font-bold text-pink-600 pt-3 text-lg">ลาฟรักแฟนนะ และลาฟสัญญาว่าจะพยายามทำทุกอย่างให้ดีขึ้นในทุกๆ วัน จะซื่อสัตย์ จะดูแลแฟนให้ดีที่สุด และจะไม่ทำให้แฟนผิดหวังเลย 🤍</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gallery -->
+        <section class="px-6 mb-24">
+            <h3 class="font-cute text-3xl text-center text-pink-600 mb-8">Gallery of Us 📸</h3>
+            <div id="gallery-grid" class="grid grid-cols-2 gap-5 max-w-sm mx-auto">
+                <!-- User Photos -->
+            </div>
+        </section>
+
+        <footer class="py-16 text-center">
+            <p class="font-cute text-2xl text-pink-500 mb-2">Forever Together 💖🌷</p>
+        </footer>
+
+        <audio id="main-audio" loop></audio>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+        <div class="animate-spin">
+            <i class="fas fa-heart text-pink-500 text-4xl"></i>
+        </div>
+        <p id="loading-text" class="text-pink-600 font-bold mt-4">กำลังบันทึก...</p>
+    </div>
+
+    <script>
+        let pin = "";
+        const PASSWORD = "140469"; // Default password
+
+        // Admin functionality
+        function openAdmin() { document.getElementById('admin-modal').style.display = 'flex'; }
+        function closeAdmin() { document.getElementById('admin-modal').style.display = 'none'; }
+
+        async function saveAdmin() {
+            const pFiles = document.getElementById('up-photos').files;
+            const mFile = document.getElementById('up-music').files[0];
+
+            if(pFiles.length > 0 || mFile) {
+                document.getElementById('loading-overlay').style.display = 'flex';
+                
+                try {
+                    // Store files in localStorage (for demo purposes)
+                    if(pFiles.length > 0) {
+                        document.getElementById('loading-text').innerText = "กำลังบันทึกรูปภาพ...";
+                        for (let file of pFiles) {
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                const key = `photo-${Date.now()}-${Math.random()}`;
+                                localStorage.setItem(key, e.target.result);
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    }
+
+                    if(mFile) {
+                        document.getElementById('loading-text').innerText = "กำลังบันทึกเพลง...";
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            localStorage.setItem('music', e.target.result);
+                            const audioElement = document.getElementById('main-audio');
+                            audioElement.src = e.target.result;
+                        };
+                        reader.readAsDataURL(mFile);
+                    }
+                    
+                    setTimeout(() => {
+                        document.getElementById('loading-overlay').style.display = 'none';
+                        alert('บันทึกข้อมูลเรียบร้อยแล้ว! 💖');
+                        
+                        document.getElementById('up-photos').value = '';
+                        document.getElementById('up-music').value = '';
+                        
+                        loadAssets();
+                        closeAdmin();
+                        
+                        if (typeof confetti === 'function') {
+                            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                        }
+                    }, 1500);
+                } catch (error) {
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    alert('เกิดข้อผิดพลาดในการบันทึก: ' + error.message);
+                    console.error('Error:', error);
+                }
+            }
+        }
+
+        function loadAssets() {
+            // Load music
+            const musicData = localStorage.getItem('music');
+            if(musicData) {
+                document.getElementById('main-audio').src = musicData;
+            }
+
+            // Load gallery
+            const grid = document.getElementById('gallery-grid');
+            grid.innerHTML = "";
+            
+            let photoCount = 0;
+            for(let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if(key && key.startsWith('photo-')) {
+                    const imageData = localStorage.getItem(key);
+                    const div = document.createElement('div');
+                    const rot = (photoCount % 2 === 0 ? "-3deg" : "3deg");
+                    div.className = "photo-item";
+                    div.style.setProperty('--rot', rot);
+                    div.innerHTML = `<img src="${imageData}" alt="Memory photo">`;
+                    grid.appendChild(div);
+                    photoCount++;
+                }
+            }
+        }
+
+        // Lock Logic
+        function addNum(n) {
+            if(pin.length < 6) {
+                pin += n;
+                updateDots();
+                if(pin.length === 6) {
+                    if(pin === PASSWORD) { unlock(); } 
+                    else { errorEffect(); }
+                }
+            }
+        }
+        function delNum() { pin = pin.slice(0,-1); updateDots(); }
+        function updateDots() {
+            for(let i=0; i<6; i++) document.getElementById(`d${i}`).className = i < pin.length ? "dot dot-active" : "dot";
+        }
+        function errorEffect() {
+            pin = ""; gsap.to("#lock-screen", { x: [-10, 10, -10, 10, 0], duration: 0.4 });
+            setTimeout(updateDots, 300);
+        }
+
+        function unlock() {
+            gsap.to("#lock-screen", { 
+                y: "-100%", duration: 1.5, ease: "expo.inOut", 
+                onComplete: () => { document.getElementById('lock-screen').remove(); }
+            });
+            document.getElementById('main-content').classList.remove('hidden');
+            gsap.to("#main-content", { opacity: 1, duration: 1 });
+            startTimer();
+            loadAssets();
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 100, spread: 70 });
+            }
+        }
+
+        function startTimer() {
+            // Set start date to today
+            const startDay = new Date();
+            startDay.setHours(0, 0, 0, 0);
+            
+            setInterval(() => {
+                const now = new Date();
+                const diff = now - startDay;
+                const currentDiff = diff > 0 ? diff : 0;
+                
+                document.getElementById('t-days').innerText = Math.floor(currentDiff / (1000 * 60 * 60 * 24));
+                document.getElementById('t-hours').innerText = Math.floor((currentDiff / (1000 * 60 * 60)) % 24);
+                document.getElementById('t-minutes').innerText = Math.floor((currentDiff / (1000 * 60)) % 60);
+                document.getElementById('t-seconds').innerText = Math.floor((currentDiff / 1000) % 60);
+            }, 1000);
+        }
+    </script>
+</body>
 </html>
