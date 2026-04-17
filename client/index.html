@@ -61,10 +61,100 @@
         }
         .admin-trigger-minimal:hover { opacity: 1; color: #ec4899; transform: rotate(45deg); }
 
+        /* Video Section */
+        .video-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            padding: 0 1rem;
+        }
+
+        .video-wrapper {
+            width: 100%;
+            max-width: 480px;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(244, 114, 182, 0.2);
+            border: 6px solid white;
+            background: #000;
+            line-height: 0;
+        }
+        
+        #main-video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* AI Chat Box */
+        .ai-chat-box {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(244, 114, 182, 0.15);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .chat-message {
+            margin-bottom: 10px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+        }
+
+        .chat-message.user {
+            background: #ec4899;
+            color: white;
+            margin-left: 20px;
+            text-align: right;
+        }
+
+        .chat-message.ai {
+            background: #f9a8d4;
+            color: #5d4a50;
+            margin-right: 20px;
+        }
+
+        .ai-command-btn {
+            background: #ec4899;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+
+        .ai-command-btn:hover {
+            background: #db2777;
+            transform: scale(1.05);
+        }
+
+        .ai-command-btn:active {
+            transform: scale(0.95);
+        }
+
         /* Loading Overlay */
         #loading-overlay {
             display: none; position: fixed; inset: 0; background: rgba(255, 255, 255, 0.8);
             z-index: 6000; align-items: center; justify-content: center; flex-direction: column;
+        }
+
+        /* Scrollbar styling */
+        .ai-chat-box::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .ai-chat-box::-webkit-scrollbar-track {
+            background: #fff5f7;
+        }
+
+        .ai-chat-box::-webkit-scrollbar-thumb {
+            background: #f472b6;
+            border-radius: 3px;
         }
     </style>
 </head>
@@ -106,12 +196,20 @@
             <h3 class="font-cute text-2xl text-pink-600 mb-5 text-center">จัดการความทรงจำ ⚙️</h3>
             <div class="space-y-4">
                 <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">วิดีโอของเรา (.mp4)</label>
+                    <input type="file" id="up-video" accept="video/*" class="file-input">
+                </div>
+                <div>
                     <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">แกลเลอรี่ภาพ 📸</label>
                     <input type="file" id="up-photos" accept="image/*" multiple class="file-input">
                 </div>
                 <div>
                     <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">เพลงรัก (.mp3)</label>
                     <input type="file" id="up-music" accept="audio/*" class="file-input">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-2">AI System Prompt</label>
+                    <textarea id="ai-prompt" class="file-input" style="height: 80px; resize: vertical; padding: 10px;">You are a helpful and friendly assistant. Respond in Thai language. You are speaking to your loved one.</textarea>
                 </div>
                 <div class="flex gap-3 pt-2">
                     <button onclick="saveAdmin()" class="flex-1 py-3 bg-pink-500 text-white rounded-xl font-bold shadow-lg shadow-pink-100">บันทึก</button>
@@ -145,6 +243,13 @@
             </div>
         </header>
 
+        <!-- Video Section -->
+        <section class="video-container mb-12">
+            <div class="video-wrapper">
+                <video id="main-video" controls playsinline></video>
+            </div>
+        </section>
+
         <!-- Message Section -->
         <section class="px-6 mb-12">
             <div class="max-w-md mx-auto glass-card p-8 shadow-xl relative">
@@ -163,6 +268,24 @@
                         ขอบคุณที่คอยบ่น คอยเตือน คอยดุ คอยสอนให้ลาฟคิดได้ในหลายๆ เรื่อง ขอบคุณสำหรับคำปลอบใจและคำแนะนำทุกครั้งที่ลาฟมีปัญหา
                     </p>
                     <p class="font-bold text-pink-600 pt-3 text-lg">ลาฟรักแฟนนะ และลาฟสัญญาว่าจะพยายามทำทุกอย่างให้ดีขึ้นในทุกๆ วัน จะซื่อสัตย์ จะดูแลแฟนให้ดีที่สุด และจะไม่ทำให้แฟนผิดหวังเลย 🤍</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI Chat Section -->
+        <section class="px-6 mb-12">
+            <h3 class="font-cute text-3xl text-center text-pink-600 mb-6">Ask Me Anything 💭</h3>
+            <div class="max-w-md mx-auto">
+                <div class="ai-chat-box mb-4" id="ai-chat-box">
+                    <div class="chat-message ai">
+                        <i class="fas fa-heart"></i> สวัสดีค่ะ! ลาฟพร้อมที่จะตอบคำถามของคุณ
+                    </div>
+                </div>
+                <div class="flex flex-wrap justify-center gap-2">
+                    <button class="ai-command-btn" onclick="askAI('ลาฟรักฉันไหม')">ลาฟรักฉันไหม?</button>
+                    <button class="ai-command-btn" onclick="askAI('ลาฟคิดถึงฉันไหม')">ลาฟคิดถึงฉันไหม?</button>
+                    <button class="ai-command-btn" onclick="askAI('ลาฟจะอยู่กับฉันไปตลอดไหม')">อยู่ด้วยฉันไปตลอดไหม?</button>
+                    <button class="ai-command-btn" onclick="askAI('ลาฟขอโทษที่เป็นอย่างนี้')">ลาฟขอโทษ...</button>
                 </div>
             </div>
         </section>
@@ -192,21 +315,39 @@
 
     <script>
         let pin = "";
-        const PASSWORD = "140469"; // Default password
+        const PASSWORD = "140469";
+        let aiSystemPrompt = "You are a helpful and friendly assistant. Respond in Thai language. You are speaking to your loved one.";
 
         // Admin functionality
         function openAdmin() { document.getElementById('admin-modal').style.display = 'flex'; }
         function closeAdmin() { document.getElementById('admin-modal').style.display = 'none'; }
 
         async function saveAdmin() {
+            const vFile = document.getElementById('up-video').files[0];
             const pFiles = document.getElementById('up-photos').files;
             const mFile = document.getElementById('up-music').files[0];
+            const promptText = document.getElementById('ai-prompt').value;
 
-            if(pFiles.length > 0 || mFile) {
+            if(promptText) {
+                aiSystemPrompt = promptText;
+                localStorage.setItem('aiSystemPrompt', promptText);
+            }
+
+            if(vFile || pFiles.length > 0 || mFile) {
                 document.getElementById('loading-overlay').style.display = 'flex';
                 
                 try {
-                    // Store files in localStorage (for demo purposes)
+                    if(vFile) {
+                        document.getElementById('loading-text').innerText = "กำลังบันทึกวิดีโอ...";
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            localStorage.setItem('video', e.target.result);
+                            const videoElement = document.getElementById('main-video');
+                            videoElement.src = e.target.result;
+                        };
+                        reader.readAsDataURL(vFile);
+                    }
+
                     if(pFiles.length > 0) {
                         document.getElementById('loading-text').innerText = "กำลังบันทึกรูปภาพ...";
                         for (let file of pFiles) {
@@ -234,6 +375,7 @@
                         document.getElementById('loading-overlay').style.display = 'none';
                         alert('บันทึกข้อมูลเรียบร้อยแล้ว! 💖');
                         
+                        document.getElementById('up-video').value = '';
                         document.getElementById('up-photos').value = '';
                         document.getElementById('up-music').value = '';
                         
@@ -249,14 +391,30 @@
                     alert('เกิดข้อผิดพลาดในการบันทึก: ' + error.message);
                     console.error('Error:', error);
                 }
+            } else {
+                alert('บันทึก Prompt เรียบร้อยแล้ว!');
+                closeAdmin();
             }
         }
 
         function loadAssets() {
+            // Load video
+            const videoData = localStorage.getItem('video');
+            if(videoData) {
+                document.getElementById('main-video').src = videoData;
+            }
+
             // Load music
             const musicData = localStorage.getItem('music');
             if(musicData) {
                 document.getElementById('main-audio').src = musicData;
+            }
+
+            // Load prompt
+            const savedPrompt = localStorage.getItem('aiSystemPrompt');
+            if(savedPrompt) {
+                aiSystemPrompt = savedPrompt;
+                document.getElementById('ai-prompt').value = savedPrompt;
             }
 
             // Load gallery
@@ -276,6 +434,53 @@
                     grid.appendChild(div);
                     photoCount++;
                 }
+            }
+        }
+
+        // AI Chat Function
+        async function askAI(message) {
+            const chatBox = document.getElementById('ai-chat-box');
+            
+            // Add user message
+            const userMsg = document.createElement('div');
+            userMsg.className = 'chat-message user';
+            userMsg.textContent = message;
+            chatBox.appendChild(userMsg);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                // Call the tRPC API
+                const response = await fetch('/api/trpc/ai.chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        json: {
+                            message: message,
+                            systemPrompt: aiSystemPrompt,
+                        },
+                    }),
+                });
+
+                const data = await response.json();
+                
+                if(data.result?.data?.reply) {
+                    const aiMsg = document.createElement('div');
+                    aiMsg.className = 'chat-message ai';
+                    aiMsg.innerHTML = `<i class="fas fa-heart"></i> ${data.result.data.reply}`;
+                    chatBox.appendChild(aiMsg);
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                } else {
+                    throw new Error('Invalid response from AI');
+                }
+            } catch (error) {
+                console.error('AI Error:', error);
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'chat-message ai';
+                errorMsg.textContent = 'ขออภัย ลาฟมีปัญหาในการตอบ 😢';
+                chatBox.appendChild(errorMsg);
+                chatBox.scrollTop = chatBox.scrollHeight;
             }
         }
 
@@ -314,7 +519,6 @@
         }
 
         function startTimer() {
-            // Set start date to today
             const startDay = new Date();
             startDay.setHours(0, 0, 0, 0);
             
@@ -329,6 +533,15 @@
                 document.getElementById('t-seconds').innerText = Math.floor((currentDiff / 1000) % 60);
             }, 1000);
         }
+
+        // Load saved prompt on page load
+        window.addEventListener('load', () => {
+            const savedPrompt = localStorage.getItem('aiSystemPrompt');
+            if(savedPrompt) {
+                aiSystemPrompt = savedPrompt;
+                document.getElementById('ai-prompt').value = savedPrompt;
+            }
+        });
     </script>
 </body>
 </html>
